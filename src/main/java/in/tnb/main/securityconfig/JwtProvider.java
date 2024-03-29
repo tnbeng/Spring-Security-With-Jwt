@@ -12,9 +12,9 @@ import io.jsonwebtoken.security.Keys;
 
 
 public class JwtProvider {
-    private static SecretKey key=Keys.hmacShaKeyFor(JWTConstant.secret_key.getBytes());//getBytes return byte array with byte values,here every byte value is corresponded to every character ASCII value 
     
-   
+    
+   //generate jwt token
     public static String generateToken(Authentication auth)//we have to chose Authentication core
     {
     	String jwt=Jwts.builder()
@@ -22,19 +22,24 @@ public class JwtProvider {
     			       .setIssuedAt(new Date())//current date
     			       .setExpiration(new Date(new Date().getTime()+86400000))// a data and extended with 24 hours ,86400000 this is equivalent to 24 hours
     			       .claim("email", auth.getName())// we can set multiple claim also
-    			       .signWith(key)  //In the JJWT library, the signWith() method expects a cryptographic key (either a SecretKey or a PrivateKey), not a string value.
+    			       .signWith(JWTConstant.key)  //In the JJWT library, the signWith() method expects a cryptographic key (either a SecretKey or a PrivateKey), not a string value.
     			       .compact();
   
     	return jwt;
     	
     }
     
+    //extract email from jwt 
     public static String getEmailFormToken(String jwt)
     {
-    	jwt=jwt.substring(7);
+ 
+    	if (jwt.startsWith("Bearer "))
+		{
+            jwt= jwt.substring(7);
+        }
     	
     	Claims claims=Jwts.parserBuilder()
-    			      .setSigningKey(key).build()//we have set key again because it parseClaimsJws method verify this key with extracted key from jwt
+    			      .setSigningKey(JWTConstant.key).build()//we have set key again because it parseClaimsJws method verify this key with extracted key from jwt
     			      .parseClaimsJws(jwt)//separate its components, including the header, payload (claims), and signature. After parsing, the method verifies the integrity and authenticity of the JWT by checking its signature against the provided key (setSigningKey(key) in the code). If the signature is valid, it indicates that the token has not been tampered with and comes from a trusted source.
     			      .getBody();//This method returns an object (often referred to as Claims object) representing the decoded claims of the JWT.
     	
